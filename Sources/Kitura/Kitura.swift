@@ -16,6 +16,7 @@
 
 import KituraNet
 import LoggerAPI
+import SSLService
 
 import Foundation
 import Dispatch
@@ -35,9 +36,10 @@ public class Kitura {
     /// - Parameter with: The `ServerDelegate` to use.
     /// - Returns: The created `HTTPServer`.
     @discardableResult
-    public class func addHTTPServer(onPort port: Int, with delegate: ServerDelegate) -> HTTPServer {
+    public class func addHTTPServer(onPort port: Int, with delegate: ServerDelegate, withSSL sslConfig: SSLService.Configuration?=nil) -> HTTPServer {
         let server = HTTP.createServer()
         server.delegate = delegate
+        server.sslConfig = sslConfig
         httpServersAndPorts.append(server: server, port: port)
         return server
     }
