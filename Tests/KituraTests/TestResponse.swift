@@ -36,6 +36,7 @@ class TestResponse: XCTestCase {
             ("testPostRequestWithDoubleBodyParser", testPostRequestWithDoubleBodyParser),
             ("testPostRequestUrlEncoded", testPostRequestUrlEncoded),
             ("testMultipartFormParsing", testMultipartFormParsing),
+            ("testMultipartFormParsingCyrillic", testMultipartFormParsingCyrillic),
             ("testParameter", testParameter),
             ("testRedirect", testRedirect),
             ("testErrorHandler", testErrorHandler),
