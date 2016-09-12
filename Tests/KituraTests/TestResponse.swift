@@ -280,6 +280,28 @@ class TestResponse: XCTestCase {
 
     }
 
+    func testMultipartFormParsingCyrillic() {
+        performServerTest(router) { expectation in
+            self.performRequest("post", path: "/multibodytest", callback: {response in
+                XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
+                do {
+                    let body = try response!.readString()
+                    XCTAssertEqual(body!, " text(\"какой-то текст\") ")
+                } catch {
+                    XCTFail("No response body")
+                }
+                expectation.fulfill()
+            }) {req in
+                req.headers["Content-Type"] = "multipart/form-data; boundary=ZZZY70gRGgDPOiChzXcmW3psiU7HlnC; charset=US-ASCII"
+                req.write(from: "Preamble" +
+                    "\r\n--ZZZY70gRGgDPOiChzXcmW3psiU7HlnC\r\n" +
+                    "\r\n" +
+                    "какой-то текст\r\n" +
+                    "--ZZZY70gRGgDPOiChzXcmW3psiU7HlnC--")
+            }
+        }
+    }
+
     func testParameter() {
     	performServerTest(router) { expectation in
             self.performRequest("get", path: "/zxcv/test?q=test2", callback: {response in
