@@ -81,6 +81,25 @@ public struct Query: CustomStringConvertible {
     public var description: String {
         return "\(self.object)"
     }
+    
+    public var isNull: Bool {
+        if case .null = self.type {
+            return true
+        }
+        
+        return false
+    }
+    
+    public var count: Int {
+        switch self.type {
+        case .array(let array):
+            return array.count
+        case .dictionary(let dictionary):
+            return dictionary.count
+        default:
+            return 0
+        }
+    }
 }
 
 extension Query {

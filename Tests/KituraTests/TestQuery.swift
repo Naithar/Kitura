@@ -220,7 +220,7 @@ class TestQuery: XCTestCase {
             
             XCTAssertNotNil(body["foo"].string)
             XCTAssertEqual(body["foo"].string, "bar")
-            XCTAssertEqual(body["foo"].string, json["foo"].stringValue)
+            XCTAssertEqual(body["foo"].string, json["foo"].string) // can't use json["foo"].string
         }
         
         router.post("/multipart") { request, response, next in
