@@ -220,7 +220,8 @@ class TestQuery: XCTestCase {
             
             XCTAssertNotNil(body["foo"].string)
             XCTAssertEqual(body["foo"].string, "bar")
-            XCTAssertEqual(body["foo"].string, json["foo"].string) // can't use json["foo"].string
+            XCTAssertEqual(body["foo"].string, json["foo"].stringValue)  // can't use json["foo"].string because of: Ambiguous use of 'subscript'
+            XCTAssertEqual(body["foo"].string, (json["foo"] as JSON).string) //workaround for 'json["foo"].string'
         }
         
         router.post("/multipart") { request, response, next in
