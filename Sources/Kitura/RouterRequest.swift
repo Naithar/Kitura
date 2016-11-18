@@ -150,6 +150,15 @@ public class RouterRequest {
         }
         return qParams
     }()
+    
+    ///
+    public lazy var query: Query = { [unowned self] in
+        if let query = self.urlComponents.query {
+            return Query(fromText: query)
+        }
+        
+        return Query.null
+    }()
 
     /// User info.
     public var userInfo: [String: Any] = [:]
