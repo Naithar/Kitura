@@ -30,6 +30,23 @@ extension Bool {
 // MARK: Query parameter return values.
 extension Query: ParameterValue {
     
+    /// Query parameter as optional 'Data' value
+    public var data: Data? {
+        switch self.type {
+        case .string(let value):
+            return value.data(using: .utf8, allowLossyConversion: false)
+        case .int(let value as Any),
+             .double(let value as Any),
+             .bool(let value as Any),
+             .array(let value as Any),
+             .dictionary(let value as Any),
+             .null(let value):
+            return String(describing: value).data(using: .utf8, allowLossyConversion: false)
+        default:
+            return nil
+        }
+    }
+    
     /// Query parameter as optional 'String' value
     public var string: String? {
         switch self.type {

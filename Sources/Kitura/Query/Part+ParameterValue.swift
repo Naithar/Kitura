@@ -16,37 +16,56 @@
 
 import Foundation
 
-// MARK: ParameterValue
-/// Enum describing parameter return types
-///
-///
-public protocol ParameterValue {
+extension Part: ParameterValue {
     
-    /// Object representing parameter.
-    var object: Any { get }
+    public var object: Any {
+        return self
+    }
     
     /// Data representing parameter.
-    var data: Data? { get }
+    public var data: Data? {
+        return self.body.data
+    }
     
     /// String representing parameter.
-    var string: String? { get }
+    public var string: String? {
+        return self.body.string
+    }
     
     /// Integer representing parameter.
-    var int: Int? { get }
+    public var int: Int? {
+        return self.body.int
+    }
     
     /// Floating-point representing parameter.
-    var double: Double? { get }
+    public var double: Double? {
+        return self.body.double
+    }
     
     /// Bool representing parameter.
-    var bool: Bool? { get }
+    public var bool: Bool? {
+        return self.body.bool
+    }
     
     /// Array representing parameter.
-    var array: [Any]? { get }
+    public var array: [Any]? {
+        return self.body.array
+    }
     
     /// Dictionary representing parameter.
-    var dictionary: [String : Any]? { get }
+    public var dictionary: [String : Any]? {
+        return self.body.dictionary
+    }
     
-    subscript(keys: [QueryKeyProtocol]) -> ParameterValue { get }
+    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
+        get {
+            return self.body[keys]
+        }
+    }
     
-    subscript(keys: QueryKeyProtocol...) -> ParameterValue { get }
+    public subscript(keys: QueryKeyProtocol...) -> ParameterValue {
+        get {
+            return self[keys]
+        }
+    }
 }

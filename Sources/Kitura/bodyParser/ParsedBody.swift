@@ -32,7 +32,7 @@ public indirect enum ParsedBody {
     /// If the content type was "application/x-www-form-urlencoded" this 
     /// associated value will contain a representation of the body as a
     /// dictionary of key-value pairs.
-    case urlEncoded([String:String])
+    case urlEncoded([String:String]) //TODO: switch with Query
     
     /// If the content type was "text" this associated value will contain a
     /// representation of the body as a String.

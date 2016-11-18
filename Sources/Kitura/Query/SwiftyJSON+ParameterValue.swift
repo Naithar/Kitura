@@ -14,41 +14,32 @@
  * limitations under the License.
  **/
 
+import Foundation
 import SwiftyJSON
 
-// MARK: QueryKey
-
-/// Enum type that descripbes subscript keys
-///
-///
-public enum QueryKey {
+extension JSON: ParameterValue {
     
-    /// Subscript key based on Int
-    case index(Int)
-    
-    /// Subscript key based on String
-    case key(String)
-}
-
-/// Protocol for implementing query key for types used in subscripting
-///
-///
-public protocol QueryKeyProtocol: JSONSubscriptType {
-    
-    /// 'QueryKey' value
-    var queryKey: QueryKey { get }
-}
-
-extension Int: QueryKeyProtocol {
-    
-    public var queryKey: QueryKey {
-        return .index(self)
+    public var data: Data? {
+        return nil
     }
-}
-
-extension String: QueryKeyProtocol {
     
-    public var queryKey: QueryKey {
-        return .key(self)
+    public var array: [Any]? {
+        return self.arrayObject
+    }
+    
+    public var dictionary: [String : Any]? {
+        return self.dictionaryObject
+    }
+
+    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
+        get {
+            return self[keys as [JSONSubscriptType]]
+        }
+    }
+    
+    public subscript(keys: QueryKeyProtocol...) -> ParameterValue {
+        get {
+            return self[keys]
+        }
     }
 }

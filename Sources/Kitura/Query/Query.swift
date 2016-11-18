@@ -61,6 +61,9 @@ public struct Query: CustomStringConvertible {
         
         /// Parameter of boolean type
         case bool(Bool)
+        
+        /// Parameter of Data type
+        case data(Data)
     }
     
     fileprivate(set) public var type: ParameterType = .null(object: NSNull())
@@ -98,6 +101,8 @@ extension Query {
                 return value
             case .dictionary(let value):
                 return value
+            case .data(let value):
+                return value
             case .null(let object):
                 return object
             }
@@ -124,6 +129,8 @@ extension Query {
                 self.type = .array(array)
             case let dictionary as [String : Any]:
                 self.type = .dictionary(dictionary)
+            case let data as Data:
+                self.type = .data(data)
             default:
                 self.type = .null(object: newValue)
             }
@@ -164,13 +171,13 @@ extension Query {
         }
     }
     
-    public subscript(keys: [QueryKeyProtocol]) -> Query {
+    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
         get {
             return keys.reduce(self) { $0[$1] }
         }
     }
     
-    public subscript(keys: QueryKeyProtocol...) -> Query {
+    public subscript(keys: QueryKeyProtocol...) -> ParameterValue {
         get {
             return self[keys]
         }
