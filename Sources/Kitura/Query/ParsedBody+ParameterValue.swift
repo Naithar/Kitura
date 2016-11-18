@@ -125,6 +125,10 @@ extension ParsedBody: ParameterValue {
     
     public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
         get {
+            guard keys.count > 0 else {
+                return self
+            }
+            
             switch self {
             case .json(let json):
                 return json[keys]

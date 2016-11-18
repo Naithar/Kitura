@@ -20,11 +20,14 @@ import Foundation
 @testable import Kitura
 @testable import KituraNet
 
+import SwiftyJSON
+
 class TestQuery: XCTestCase {
     
     static var allTests: [(String, (TestQuery) -> () throws -> Void)] {
         return [
             ("testQuery", testQuery),
+            ("testBody", testBody),
         ]
     }
     
@@ -40,24 +43,35 @@ class TestQuery: XCTestCase {
         let router = Router()
         
         router.get("strings") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
             XCTAssertNotNil(request.queryParameters["q"])
             XCTAssertNotNil(request.query["q"].string)
             XCTAssertEqual(request.query["q"].string, request.queryParameters["q"])
-            response.status(.OK)
-            next()
         }
         
         router.get("ints") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
             let param = request.queryParameters["q"]
             XCTAssertNotNil(param)
             XCTAssertNotNil(request.query["q"].string)
             let parameterInt = Int(param!)
             XCTAssertEqual(request.query["q"].int, parameterInt)
-            response.status(.OK)
-            next()
         }
         
         router.get("non_int") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
             let param = request.queryParameters["q"]
             XCTAssertNotNil(param)
             
@@ -68,12 +82,14 @@ class TestQuery: XCTestCase {
             XCTAssertNil(request.query["q"].int)
             XCTAssertNotNil(request.query["q"].string)
             XCTAssertEqual(request.query["q"].string, request.queryParameters["q"])
-            
-            response.status(.OK)
-            next()
         }
         
         router.get("array") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
             XCTAssertNotNil(request.queryParameters["q[]"])
             
             if case .null = request.query["q"].type {
@@ -97,12 +113,14 @@ class TestQuery: XCTestCase {
             XCTAssertEqual(request.query["q", 2].int, request.query["q"][2].int)
             
             XCTAssertNil(request.query["q"][3].int)
-            
-            response.status(.OK)
-            next()
         }
         
         router.get("dictionary") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
             XCTAssertNotNil(request.queryParameters["q[\"a\"]"])
             
             if case .null = request.query["q"].type {
@@ -128,9 +146,6 @@ class TestQuery: XCTestCase {
             
             XCTAssertNil(request.query["q"][2].int)
             XCTAssertNil(request.query["q"]["a3"].int)
-            
-            response.status(.OK)
-            next()
         }
         
         performServerTest(router, asyncTasks: { expectation in
@@ -159,5 +174,120 @@ class TestQuery: XCTestCase {
                 expectation.fulfill()
             })
         })
+    }
+    
+    func testBody() {
+        let router = Router()
+        
+        router.post("*", middleware: BodyParser())
+        
+        router.post("/text") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
+            guard let body = request.body else {
+                XCTFail("body should exist")
+                return
+            }
+            
+            guard case .text(let string) = body else {
+                XCTFail("wrong body")
+                return
+            }
+            
+            XCTAssertNotNil(body.string)
+            XCTAssertEqual(body.string, "hello")
+            XCTAssertEqual(body.string, string)
+        }
+        
+        router.post("/json") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
+            guard let body = request.body else {
+                XCTFail("body should exist")
+                return
+            }
+            
+            guard case .json(let json) = body else {
+                XCTFail("wrong body")
+                return
+            }
+            
+            XCTAssertNotNil(body["foo"].string)
+            XCTAssertEqual(body["foo"].string, "bar")
+            XCTAssertEqual(body["foo"].string, json["foo"].stringValue)
+        }
+        
+        router.post("/multipart") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
+            guard let body = request.body else {
+                XCTFail("body should exist")
+                return
+            }
+            
+            guard case .multipart(let parts) = body else {
+                XCTFail("wrong body")
+                return
+            }
+            
+            
+            XCTAssertNotNil(body["text"].string)
+            XCTAssertEqual(body["text"].string, "text default")
+            
+            guard let text = parts.first,
+                case .text(let string) = text.body else {
+                    XCTFail()
+                    return
+            }
+            
+            XCTAssertEqual(body["text"].string, string)
+        }
+        
+        
+        performServerTest(router, asyncTasks: { expectation in
+            self.performRequest("post", path: "/text", callback: {response in
+                XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
+                expectation.fulfill()
+            }) { req in
+                req.write(from: "hello")
+            }
+        }, { expectation in
+            let jsonToTest = JSON(["foo": "bar"])
+            
+            self.performRequest("post", path: "/json", callback: {response in
+                XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
+                expectation.fulfill()
+            }, headers: ["Content-Type": "application/json"]) { req in
+                do {
+                    let jsonData = try jsonToTest.rawData()
+                    req.write(from: jsonData)
+                    req.write(from: "\n")
+                } catch {
+                    XCTFail("caught error \(error)")
+                }
+            }
+        }, { expectation in
+            
+            self.performRequest("post", path: "/multipart", callback: {response in
+                XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
+                expectation.fulfill()
+            }) {req in
+                req.headers["Content-Type"] = "multipart/form-data; boundary=---------------------------9051914041544843365972754266"
+                req.write(from: "-----------------------------9051914041544843365972754266\r\n" +
+                    "Content-Disposition: form-data; name=\"text\"\r\n\r\n" +
+                    "text default\r\n" +
+                    "-----------------------------9051914041544843365972754266--")
+            }
+        })
+        
     }
 }
